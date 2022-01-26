@@ -106,6 +106,9 @@ class ImageListener:
             self.pubs.append(rospy.Publisher('/objects/prior_pose/' + cls, PoseStamped, queue_size=10))
 
         print('***PoseCNN ready, waiting for camera images***')
+        
+        ## TODO: WHAT ROS_CAMERA?!
+        print('ROS_CAMERA = ', cfg.TEST.ROS_CAMERA)
 
         if cfg.TEST.ROS_CAMERA == 'D415':
             # use RealSense D415
@@ -143,11 +146,16 @@ class ImageListener:
         dataset._intrinsic_matrix = K
         print(dataset._intrinsic_matrix)
 
+
+        print('Before Callback')
         queue_size = 1
         slop_seconds = 0.1
         ts = message_filters.ApproximateTimeSynchronizer([rgb_sub, depth_sub], queue_size, slop_seconds)
         ts.registerCallback(self.callback_rgbd)
+        print('After Callback')
 
+
+        print('Before Blob')
         # use fake label blob
         num_classes = dataset.num_classes
         height = cfg.TRAIN.SYN_HEIGHT
@@ -155,7 +163,10 @@ class ImageListener:
         label_blob = np.zeros((1, num_classes, height, width), dtype=np.float32)
         pose_blob = np.zeros((1, num_classes, 9), dtype=np.float32)
         gt_boxes = np.zeros((1, num_classes, 5), dtype=np.float32)
+        print('After Blob')
 
+
+        print('Before meta data')
         # construct the meta data
         Kinv = np.linalg.pinv(K)
         meta_data_blob = np.zeros((1, 18), dtype=np.float32)
@@ -169,9 +180,16 @@ class ImageListener:
         self.poses_blob = torch.from_numpy(pose_blob).cuda()
         self.points_blob = torch.from_numpy(dataset._point_blob).cuda()
         self.symmetry_blob = torch.from_numpy(dataset._symmetry).cuda()
+        print('After meta data')
 
 
     def callback_rgbd(self, rgb, depth):
+        print('callback_rgbd')
+        rospy.loginfo("starting callback")
+        print('camera_frame = ', self.camera_frame)
+        print('base_frame = ', self.base_frame)
+        print('target_frame = ', self.base_frame)
+
 
         self.Tbc_now, self.Tbc_stamp = get_relative_pose_from_tf(self.listener, self.camera_frame, self.base_frame)
 
@@ -187,12 +205,20 @@ class ImageListener:
             return
 
         im = self.cv_bridge.imgmsg_to_cv2(rgb, 'bgr8')
+        # TODO:
+        print('IM = ', im.shape)
 
         # rescale image if necessary
         if cfg.TEST.SCALES_BASE[0] != 1:
             im_scale = cfg.TEST.SCALES_BASE[0]
             im = pad_im(cv2.resize(im, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR), 16)
             depth_cv = pad_im(cv2.resize(depth_cv, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_NEAREST), 16)
+
+        ## TODO: 
+        print('im = ', im.shape)
+        print('depth_cv = ', depth_cv.shape)
+        print('rgb.header.frame_id = ', rgb.header.frame_id)
+        print('rgb.header.stamp = ', rgb.header.stamp)
 
         with lock:
             self.im = im.copy()
@@ -202,10 +228,21 @@ class ImageListener:
 
 
     def run_network(self):
+        print('run_network')
 
         with lock:
-            if listener.im is None:
-              return
+            ## TODO: changed listener to im
+            ## if listener.im is None:
+            ##   print('No Listener!')
+            ##   return
+            if self.im is None:
+                print('No Listener!')
+                print('im = ', self.im)
+                print('depth = ', self.depth)
+                print('rgb_frame_id = ', self.rgb_frame_id)
+                print('rgb_frame_stamp = ', self.rgb_frame_stamp)
+                return
+
             im_color = self.im.copy()
             depth_cv = self.depth.copy()
             rgb_frame_id = self.rgb_frame_id
@@ -246,6 +283,7 @@ class ImageListener:
                                                          self.extents_blob, self.gt_boxes_blob, self.poses_blob, self.points_blob, self.symmetry_blob)
         label_tensor = out_label[0]
         labels = label_tensor.detach().cpu().numpy()
+        print('labels = ', labels.shape)
 
         # filter out detections
         rois = rois.detach().cpu().numpy()
@@ -470,6 +508,7 @@ if __name__ == '__main__':
     print('Called with args:')
     print(args)
 
+    print(os.getcwd())
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
 
@@ -498,6 +537,8 @@ if __name__ == '__main__':
         network_data = None
         print("no pretrained network specified")
         sys.exit()
+
+    print(args)
 
     network = networks.__dict__[args.network_name](dataset.num_classes, cfg.TRAIN.NUM_UNITS, network_data).cuda(device=cfg.device)
     network = torch.nn.DataParallel(network, device_ids=[0]).cuda(device=cfg.device)

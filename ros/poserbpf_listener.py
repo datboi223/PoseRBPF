@@ -13,7 +13,7 @@ import threading
 import sys
 import posecnn_cuda
 
-from Queue import Queue
+# from Queue import Queue
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
 from sensor_msgs.msg import Image as ROS_Image
@@ -218,7 +218,7 @@ class ImageListener:
                     secs = trans[1]
                     now = rospy.Time.now()
                     if abs(now.secs - secs) > 1.0:
-                        print 'posecnn pose for %s time out %f %f' % (source_frame, now.secs, secs)
+                        print('posecnn pose for %s time out %f %f' % (source_frame, now.secs, secs))
                         continue
                     roi = np.zeros((1, 7), dtype=np.float32)
                     roi[0, 0] = 0
