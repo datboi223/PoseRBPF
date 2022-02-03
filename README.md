@@ -134,6 +134,48 @@ sudo rosdep init
 rosdep update
 ```
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+## Online Real-world Pose Estimation using ROS-Noetic and Python 3
+- This version of the ROS-based estimation method works with Python 3.6 and ROS-Noetic
+```angular2html
+conda env create -f pose_rbpf_env_ros.yml
+conda activate pose_rbpf_env_ros
+```
+- compile the YCB Renderer according to the [instruction](./ycb_render/README.md).
+- compile the utility functions with:
+```angular2html
+sh build.sh
+```
+- Make sure you can run the demo above first.
+- Install ROS if it's not there:
+```angular2html
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo apt update
+sudo apt install ros-noetic-desktop-full
+```
+
+- Update python packages:
+```angular2html
+conda install -c auto catkin_pkg
+pip install -U rosdep rosinstall_generator wstool rosinstall six vcstools
+pip install msgpack
+pip install empy
+```
+
+- Source ROS (every time before launching the node):
+```angular2html
+source /opt/ros/noetic/setup.bash
+```
+
+- Initialze rosdep:
+```angular2html
+sudo rosdep init
+rosdep update
+```
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+
 ### Single object tracking demo:
 - Download demo rosbag:
 ```angular2html
