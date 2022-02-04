@@ -123,11 +123,11 @@ def render_images(dataset, poses):
 
 # only render rois and segmentation masks
 def render_image_detection(dataset, im, rois, labels):
-    print('render_image_detection')
-    print(dataset)
-    print(im.shape)
-    print(rois.shape)
-    print(labels.shape)
+    # print('render_image_detection')
+    # print(dataset)
+    # print(im.shape)
+    # print(rois.shape)
+    # print(labels.shape)
 
     # label image
     label_image = dataset.labels_to_image(labels)
@@ -144,10 +144,10 @@ def render_image_detection(dataset, im, rois, labels):
         if rois[i, -1] > cfg.TEST.DET_THRESHOLD:
             print(dataset._classes[cls])
             # draw roi
-            x1 = rois[i, 2]; print('x1 = ', x1, x1.dtype); x1 = np.rint(x1).astype(np.int)
-            y1 = rois[i, 3]; print('y1 = ', y1, y1.dtype); y1 = np.rint(y1).astype(np.int)
-            x2 = rois[i, 4]; print('x2 = ', x2, x2.dtype); x2 = np.rint(x2).astype(np.int)
-            y2 = rois[i, 5]; print('y2 = ', y2, y2.dtype); y2 = np.rint(y2).astype(np.int)
+            x1 = rois[i, 2]; x1 = np.rint(x1).astype(np.int)
+            y1 = rois[i, 3]; y1 = np.rint(y1).astype(np.int)
+            x2 = rois[i, 4]; x2 = np.rint(x2).astype(np.int)
+            y2 = rois[i, 5]; y2 = np.rint(y2).astype(np.int)
             cv2.rectangle(im_label, (x1, y1), (x2, y2), class_colors[cls], 2)
 
     return im_label
