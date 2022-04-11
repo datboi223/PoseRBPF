@@ -146,6 +146,26 @@ conda activate pose_rbpf_env_ros
 ```angular2html
 sh build.sh
 ```
+
+If comnpilation results in an error due to `Eigen` try to install it with 
+```bash
+sudo apt install libeigen3-dev
+```
+If it still not working, try to build `Eigen` from source
+```bash
+git clone https://gitlab.com/libeigen/eigen
+cd eigen
+mkdir build
+cmake ..
+make
+sudo make install
+```
+
+Another important dependecsy is `fmt` from the `Sophus`-Library, that can be installed with
+```bash
+sudo aptitude install libfmt-dev
+```
+
 - Make sure you can run the demo above first.
 - Install ROS if it's not there:
 ```angular2html
